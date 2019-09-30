@@ -5,6 +5,9 @@ defmodule Watchexs.FileWatcher do
   """
   require Logger
 
+  alias IEx.Helpers
+  alias Mix.Project
+
   use GenServer
 
   @watched_dirs Application.get_env(:watchexs, :watch_dirs)
@@ -28,7 +31,7 @@ defmodule Watchexs.FileWatcher do
   def handle_info({:file_event, watcher_pid, {path, _events}},
       %{watcher_pid: watcher_pid} = state) do
     list_errors =
-      run_reload_or_recompile(state.path_with_errors ++ [path])
+      tour_list_paths(state.path_with_errors ++ [path])
 
     {:noreply, %{state | path_with_errors: list_errors}}
   end
@@ -44,7 +47,7 @@ defmodule Watchexs.FileWatcher do
     {:noreply, state}
   end
 
-  defp run_reload_or_recompile(path_list) do
+  defp tour_list_paths(path_list) do
     path_list
     |> Enum.map(&control_recompile(&1))
     |> Enum.filter(&(&1 != :ok))
@@ -63,7 +66,7 @@ defmodule Watchexs.FileWatcher do
   end
 
   defp watched_dirs do
-    Mix.Project.deps_paths()
+    Project.deps_paths()
     |> Stream.flat_map(fn {_dep_name, dir} ->
       @watched_dirs
       |> Enum.map(fn watched_dir ->
@@ -89,5 +92,5 @@ defmodule Watchexs.FileWatcher do
     ex -> {:error, "Error message #{inspect ex}"}
   end
 
-  defp recompile, do: IEx.Helpers.recompile()
+  defp recompile, do: Helpers.recompile()
 end
