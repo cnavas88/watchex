@@ -29,9 +29,12 @@ defmodule Watchexs.FileWatcher do
   end
 
   def handle_info({:file_event, watcher_pid, {path, _events}},
-      %{watcher_pid: watcher_pid} = state) do
+      %{watcher_pid: watcher_pid,
+        path_with_errors: error_paths} = state) do
     list_errors =
-      tour_list_paths(state.path_with_errors ++ [path])
+      error_paths
+      |> add_new_path(path)
+      |> tour_list_paths()
 
     {:noreply, %{state | path_with_errors: list_errors}}
   end
@@ -47,6 +50,14 @@ defmodule Watchexs.FileWatcher do
     {:noreply, state}
   end
 
+  defp add_new_path(list_path, new_path) do
+    if new_path in list_path do
+      list_path
+    else
+      list_path ++ [new_path]
+    end
+  end
+
   defp tour_list_paths(path_list) do
     path_list
     |> Enum.map(&control_recompile(&1))
@@ -60,7 +71,7 @@ defmodule Watchexs.FileWatcher do
         path
 
       _ ->
-        Logger.info "Reload project."
+        Logger.info "Reload or recompile path: #{inspect path}"
         :ok
     end
   end
