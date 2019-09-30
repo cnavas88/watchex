@@ -27,7 +27,8 @@ defmodule Watchexs.FileWatcher do
 
   def handle_info({:file_event, watcher_pid, {path, _events}},
       %{watcher_pid: watcher_pid} = state) do
-    list_errors = run_reload_or_recompile(state.path_with_errors, path)
+    list_errors =
+      run_reload_or_recompile(state.path_with_errors ++ [path])
 
     {:noreply, %{state | path_with_errors: list_errors}}
   end
@@ -43,21 +44,22 @@ defmodule Watchexs.FileWatcher do
     {:noreply, state}
   end
 
-  defp run_reload_or_recompile(error_list, path) do
-    Enum.map(error_list ++ [path], fn path ->
-      case reload_or_recompile(path) do
-        {:error, msg} ->
-          IO.puts "ERROR :: #{inspect msg}"
-          path
+  defp run_reload_or_recompile(path_list) do
+    path_list
+    |> Enum.map(&control_recompile(&1))
+    |> Enum.filter(&(&1 != :ok))
+  end
 
-        _ ->
-          Logger.info "Reload project."
-          :ok
-      end
-    end)
-    |> Enum.filter(fn result ->
-      result != :ok
-    end)
+  defp control_recompile(path) do
+    case reload_or_recompile(path) do
+      {:error, msg} ->
+        Logger.error "#{inspect msg}"
+        path
+
+      _ ->
+        Logger.info "Reload project."
+        :ok
+    end
   end
 
   defp watched_dirs do
@@ -89,10 +91,3 @@ defmodule Watchexs.FileWatcher do
 
   defp recompile, do: IEx.Helpers.recompile()
 end
-
-# %CompileError{description: "undefined function path/0", file: "/Users/carlosnavas/watchex/lib/prueba.ex", line: 3}
-# EXCEPTION :: %Code.LoadError{file: "/Users/carlosnavas/watchex/asgdasgd/asdasdasdasd.exå", message: "could not load /Users/carlosnavas/watchex/asgdasgd/asdasdasdasd.exå"}
-
-
-# crear un estado con una lista de archivos que no se han
-# podido ni recompilar ni cargar, para probarlo antes
