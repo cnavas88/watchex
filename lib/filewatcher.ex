@@ -23,22 +23,13 @@ defmodule Watchexs.FileWatcher do
     }
 
     {:ok, state}
-
   end
 
   def handle_info({:file_event, watcher_pid, {path, _events}},
-      %{watcher_pid: watcher_pid,
-        path_with_errors: list_errors} = state) do
-    IO.puts "LIST ERRORS :: #{inspect list_errors}"
-    case reload_or_recompile(path) do
-      {:error, msg} ->
-        IO.puts "ERROR :: #{inspect msg}"
-        {:noreply, get_new_state(state, path)}
+      %{watcher_pid: watcher_pid} = state) do
+    list_errors = run_reload_or_recompile(state.path_with_errors, path)
 
-      _ ->
-        Logger.info "Reload project."
-        {:noreply, state}
-    end
+    {:noreply, %{state | path_with_errors: list_errors}}
   end
 
   def handle_info({:file_event, watcher_pid, :stop},
@@ -52,12 +43,21 @@ defmodule Watchexs.FileWatcher do
     {:noreply, state}
   end
 
-  defp get_new_state(%{path_with_errors: errors_list} = state, path) do
-    if path in errors_list do
-      state
-    else
-      %{state | path_with_errors: errors_list ++ [path]}
-    end
+  defp run_reload_or_recompile(error_list, path) do
+    Enum.map(error_list ++ [path], fn path ->
+      case reload_or_recompile(path) do
+        {:error, msg} ->
+          IO.puts "ERROR :: #{inspect msg}"
+          path
+
+        _ ->
+          Logger.info "Reload project."
+          :ok
+      end
+    end)
+    |> Enum.filter(fn result ->
+      result != :ok
+    end)
   end
 
   defp watched_dirs do
