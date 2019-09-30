@@ -3,10 +3,8 @@ defmodule Watchexs.FileWatcher do
   File watcher is a gensever that see the change files in the
   watched_dirs folders.
   """
-  require Logger
-
-  alias IEx.Helpers
   alias Mix.Project
+  alias Watchexs.Reload
 
   use GenServer
 
@@ -33,8 +31,8 @@ defmodule Watchexs.FileWatcher do
         path_with_errors: error_paths} = state) do
     list_errors =
       error_paths
-      |> add_new_path(path)
-      |> tour_list_paths()
+      |> Reload.add_new_path(path)
+      |> Reload.tour_list_paths()
 
     {:noreply, %{state | path_with_errors: list_errors}}
   end
@@ -50,32 +48,6 @@ defmodule Watchexs.FileWatcher do
     {:noreply, state}
   end
 
-  defp add_new_path(list_path, new_path) do
-    if new_path in list_path do
-      list_path
-    else
-      list_path ++ [new_path]
-    end
-  end
-
-  defp tour_list_paths(path_list) do
-    path_list
-    |> Enum.map(&control_recompile(&1))
-    |> Enum.filter(&(&1 != :ok))
-  end
-
-  defp control_recompile(path) do
-    case reload_or_recompile(path) do
-      {:error, msg} ->
-        Logger.error "#{inspect msg}"
-        path
-
-      _ ->
-        Logger.info "Reload or recompile path: #{inspect path}"
-        :ok
-    end
-  end
-
   defp watched_dirs do
     Project.deps_paths()
     |> Stream.flat_map(fn {_dep_name, dir} ->
@@ -87,21 +59,4 @@ defmodule Watchexs.FileWatcher do
     |> Stream.concat(@watched_dirs)
     |> Enum.filter(&File.dir?/1)
   end
-
-  defp reload_or_recompile(path) do
-    if File.exists?(path) do
-      reload(path)
-    else
-      recompile()
-    end
-  end
-
-  defp reload(path) do
-    Code.compiler_options(ignore_module_conflict: true)
-    Code.load_file(path)
-  rescue
-    ex -> {:error, "Error message #{inspect ex}"}
-  end
-
-  defp recompile, do: Helpers.recompile()
 end
