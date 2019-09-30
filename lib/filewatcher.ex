@@ -12,7 +12,8 @@ defmodule Watchexs.FileWatcher do
   def start_link, do: GenServer.start_link(__MODULE__, [])
 
   def init(_) do
-    {:ok, watcher_pid} = FileSystem.start_link(dirs: watched_dirs())
+    {:ok, watcher_pid} =
+      FileSystem.start_link(dirs: watched_dirs())
 
     FileSystem.subscribe(watcher_pid)
 
@@ -22,15 +23,17 @@ defmodule Watchexs.FileWatcher do
     }
 
     {:ok, state}
+
   end
 
   def handle_info({:file_event, watcher_pid, {path, _events}},
-      %{watcher_pid: watcher_pid} = state) do
+      %{watcher_pid: watcher_pid,
+        path_with_errors: list_errors} = state) do
+    IO.puts "LIST ERRORS :: #{inspect list_errors}"
     case reload_or_recompile(path) do
       {:error, msg} ->
         IO.puts "ERROR :: #{inspect msg}"
-
-        {:noreply, state}
+        {:noreply, get_new_state(state, path)}
 
       _ ->
         Logger.info "Reload project."
@@ -41,14 +44,20 @@ defmodule Watchexs.FileWatcher do
   def handle_info({:file_event, watcher_pid, :stop},
       %{watcher_pid: watcher_pid} = state) do
     IO.puts "File watcher stopped."
-
     {:noreply, state}
   end
 
   def handle_info(data, state) do
     IO.puts "#{inspect data}"
-
     {:noreply, state}
+  end
+
+  defp get_new_state(%{path_with_errors: errors_list} = state, path) do
+    if path in errors_list do
+      state
+    else
+      %{state | path_with_errors: errors_list ++ [path]}
+    end
   end
 
   defp watched_dirs do
@@ -83,3 +92,7 @@ end
 
 # %CompileError{description: "undefined function path/0", file: "/Users/carlosnavas/watchex/lib/prueba.ex", line: 3}
 # EXCEPTION :: %Code.LoadError{file: "/Users/carlosnavas/watchex/asgdasgd/asdasdasdasd.exå", message: "could not load /Users/carlosnavas/watchex/asgdasgd/asdasdasdasd.exå"}
+
+
+# crear un estado con una lista de archivos que no se han
+# podido ni recompilar ni cargar, para probarlo antes
