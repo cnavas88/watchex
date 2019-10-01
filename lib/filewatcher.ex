@@ -5,54 +5,64 @@ defmodule Watchexs.FileWatcher do
   """
   require Logger
 
+  alias Mix.Project
+  alias Watchexs.Reload
+
   use GenServer
 
   @watched_dirs Application.get_env(:watchexs, :watch_dirs)
 
+  # Public API
+
   def start_link, do: GenServer.start_link(__MODULE__, [])
 
+  # Callbacks
+
   def init(_) do
-    {:ok, watcher_pid} = FileSystem.start_link(dirs: watched_dirs())
+    {:ok, watcher_pid} =
+      FileSystem.start_link(dirs: watched_dirs())
 
     FileSystem.subscribe(watcher_pid)
 
     state = %{
       watcher_pid: watcher_pid,
-      path_with_errors: []
+      path_with_errors: [],
+      deps: %{
+        add_new_path:     &Reload.add_new_path/2,
+        tour_list_paths:  &Reload.tour_list_paths/1
+      }
     }
 
     {:ok, state}
   end
 
   def handle_info({:file_event, watcher_pid, {path, _events}},
-      %{watcher_pid: watcher_pid} = state) do
-    case reload_or_recompile(path) do
-      {:error, msg} ->
-        IO.puts "ERROR :: #{inspect msg}"
+      %{watcher_pid: watcher_pid,
+        path_with_errors: error_paths,
+        deps: deps} = state) do
+    list_errors =
+      error_paths
+      |> deps.add_new_path.(path)
+      |> deps.tour_list_paths.()
 
-        {:noreply, state}
-
-      _ ->
-        Logger.info "Reload project."
-        {:noreply, state}
-    end
+    {:noreply, %{state | path_with_errors: list_errors}}
   end
 
   def handle_info({:file_event, watcher_pid, :stop},
       %{watcher_pid: watcher_pid} = state) do
-    IO.puts "File watcher stopped."
-
+    Logger.info "File watcher stopped."
     {:noreply, state}
   end
 
   def handle_info(data, state) do
-    IO.puts "#{inspect data}"
-
+    Logger.info "#{inspect data}"
     {:noreply, state}
   end
 
+  # Auxiliary functions
+
   defp watched_dirs do
-    Mix.Project.deps_paths()
+    Project.deps_paths()
     |> Stream.flat_map(fn {_dep_name, dir} ->
       @watched_dirs
       |> Enum.map(fn watched_dir ->
@@ -62,24 +72,4 @@ defmodule Watchexs.FileWatcher do
     |> Stream.concat(@watched_dirs)
     |> Enum.filter(&File.dir?/1)
   end
-
-  defp reload_or_recompile(path) do
-    if File.exists?(path) do
-      reload(path)
-    else
-      recompile()
-    end
-  end
-
-  defp reload(path) do
-    Code.compiler_options(ignore_module_conflict: true)
-    Code.load_file(path)
-  rescue
-    ex -> {:error, "Error message #{inspect ex}"}
-  end
-
-  defp recompile, do: IEx.Helpers.recompile()
 end
-
-# %CompileError{description: "undefined function path/0", file: "/Users/carlosnavas/watchex/lib/prueba.ex", line: 3}
-# EXCEPTION :: %Code.LoadError{file: "/Users/carlosnavas/watchex/asgdasgd/asdasdasdasd.exå", message: "could not load /Users/carlosnavas/watchex/asgdasgd/asdasdasdasd.exå"}
