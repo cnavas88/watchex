@@ -10,7 +10,11 @@ defmodule Watchexs.FileWatcher do
 
   @watched_dirs Application.get_env(:watchexs, :watch_dirs)
 
+  # Public API
+
   def start_link, do: GenServer.start_link(__MODULE__, [])
+
+  # Callbacks
 
   def init(_) do
     {:ok, watcher_pid} =
@@ -47,6 +51,8 @@ defmodule Watchexs.FileWatcher do
     IO.puts "#{inspect data}"
     {:noreply, state}
   end
+
+  # Auxiliary functions
 
   defp watched_dirs do
     Project.deps_paths()

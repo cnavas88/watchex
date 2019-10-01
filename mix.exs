@@ -22,8 +22,9 @@ defmodule Watchexs.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:file_system,  "~> 0.2"},
-      {:credo,        "~> 0.9",   only: [:dev, :test]}
+      {:credo,          "~> 0.9",   only: [:dev, :test]},
+      {:file_system,    "~> 0.2"},
+      {:mix_test_watch, "~> 0.8", only: :dev, runtime: false}
     ]
   end
 end
