@@ -8,9 +8,10 @@ defmodule Watchexs.Reload do
   alias IEx.Helpers
 
   @deps %{
-    recompile: &Helpers.recompile/0,
-    compl_opt: &Code.compiler_options/1,
-    load_file: &Code.load_file/1
+    recompile:    &Helpers.recompile/0,
+    compl_opt:    &Code.compiler_options/1,
+    load_file:    &Code.load_file/1,
+    file_exists:  &File.exists?/1
   }
 
   def add_new_path(list_path, new_path) do
@@ -40,7 +41,7 @@ defmodule Watchexs.Reload do
   end
 
   defp reload_or_recompile(path, deps) do
-    if File.exists?(path) do
+    if deps.file_exists.(path) do
       reload(path, deps)
     else
       recompile(deps)
