@@ -29,14 +29,22 @@ defmodule Watchexs.Reload do
   end
 
   defp control_recompile(path, deps) do
-    case reload_or_recompile(path, deps) do
-      {:error, msg} ->
-        Logger.error "#{inspect msg}"
-        path
+    is_test_file? =
+      Regex.match?(~r/test\//, path) and String.ends_with?(path, ".exs")
+    
+    if not is_test_file? do
+      case reload_or_recompile(path, deps) do
+        {:error, msg} ->
+          Logger.error "#{inspect msg}"
+          path
 
-      _ ->
-        Logger.info "Reload or recompile path: #{inspect path}"
-        :ok
+        _ ->
+          Logger.info "Reload or recompile path: #{inspect path}"
+          :ok
+      end
+    else
+      Logger.info "IS A TEST FILE"
+      :ok
     end
   end
 
@@ -55,7 +63,5 @@ defmodule Watchexs.Reload do
     ex -> {:error, "Error message #{inspect ex}"}
   end
 
-  defp recompile(deps) do
-    deps.recompile.()
-  end
+  defp recompile(deps), do: deps.recompile.()
 end

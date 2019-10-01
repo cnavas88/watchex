@@ -3,6 +3,8 @@ defmodule Watchexs.FileWatcher do
   File watcher is a gensever that see the change files in the
   watched_dirs folders.
   """
+  require Logger
+
   alias Mix.Project
   alias Watchexs.Reload
 
@@ -24,7 +26,11 @@ defmodule Watchexs.FileWatcher do
 
     state = %{
       watcher_pid: watcher_pid,
-      path_with_errors: []
+      path_with_errors: [],
+      deps: %{
+        add_new_path:     &Reload.add_new_path/2,
+        tour_list_paths:  &Reload.tour_list_paths/1
+      }
     }
 
     {:ok, state}
@@ -32,23 +38,24 @@ defmodule Watchexs.FileWatcher do
 
   def handle_info({:file_event, watcher_pid, {path, _events}},
       %{watcher_pid: watcher_pid,
-        path_with_errors: error_paths} = state) do
+        path_with_errors: error_paths,
+        deps: deps} = state) do
     list_errors =
       error_paths
-      |> Reload.add_new_path(path)
-      |> Reload.tour_list_paths()
+      |> deps.add_new_path.(path)
+      |> deps.tour_list_paths.()
 
     {:noreply, %{state | path_with_errors: list_errors}}
   end
 
   def handle_info({:file_event, watcher_pid, :stop},
       %{watcher_pid: watcher_pid} = state) do
-    IO.puts "File watcher stopped."
+    Logger.info "File watcher stopped."
     {:noreply, state}
   end
 
   def handle_info(data, state) do
-    IO.puts "#{inspect data}"
+    Logger.info "#{inspect data}"
     {:noreply, state}
   end
 

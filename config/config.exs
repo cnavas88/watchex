@@ -29,6 +29,6 @@ use Mix.Config
 #
 #     import_config "#{Mix.env()}.exs"
 
-config :watchexs, watch_dirs: ["lib/", "test/"]
+config :watchexs, watch_dirs: ["lib/", "test/", "web/"]
 
 config :watchexs, enabled: true
