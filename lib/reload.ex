@@ -24,28 +24,28 @@ defmodule Watchexs.Reload do
 
   def tour_list_paths(path_list, deps \\ @deps) do
     path_list
-    |> Enum.map(&control_recompile(&1, deps))
+    |> Enum.map(&control_recompile(&1, deps, is_test_file?(&1)))
     |> Enum.filter(&(&1 != :ok))
   end
 
-  defp control_recompile(path, deps) do
-    is_test_file? =
-      Regex.match?(~r/test\//, path) and String.ends_with?(path, ".exs")
-    
-    if not is_test_file? do
-      case reload_or_recompile(path, deps) do
-        {:error, msg} ->
-          Logger.error "#{inspect msg}"
-          path
+  defp is_test_file?(path) do
+    Regex.match?(~r/test\//, path) and String.ends_with?(path, ".exs")
+  end
 
-        _ ->
-          Logger.info "Reload or recompile path: #{inspect path}"
-          :ok
-      end
-    else
-      Logger.info "IS A TEST FILE"
-      :ok
+  defp control_recompile(path, deps, false) do
+    case reload_or_recompile(path, deps) do
+      {:error, msg} ->
+        Logger.error "#{inspect msg}"
+        path
+
+      _ ->
+        Logger.info "Reload or recompile path: #{inspect path}"
+        :ok
     end
+  end
+  defp control_recompile(_path, _deps, true) do
+    Logger.info "IS A TEST FILE"
+    :ok
   end
 
   defp reload_or_recompile(path, deps) do
