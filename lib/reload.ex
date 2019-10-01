@@ -7,6 +7,12 @@ defmodule Watchexs.Reload do
 
   alias IEx.Helpers
 
+  @deps %{
+    recompile: &Helpers.recompile/0,
+    compl_opt: &Code.compiler_options/1,
+    load_file: &Code.load_file/1
+  }
+
   def add_new_path(list_path, new_path) do
     if new_path in list_path do
       list_path
@@ -15,14 +21,14 @@ defmodule Watchexs.Reload do
     end
   end
 
-  def tour_list_paths(path_list) do
+  def tour_list_paths(path_list, deps \\ @deps) do
     path_list
-    |> Enum.map(&control_recompile(&1))
+    |> Enum.map(&control_recompile(&1, deps))
     |> Enum.filter(&(&1 != :ok))
   end
 
-  defp control_recompile(path) do
-    case reload_or_recompile(path) do
+  defp control_recompile(path, deps) do
+    case reload_or_recompile(path, deps) do
       {:error, msg} ->
         Logger.error "#{inspect msg}"
         path
@@ -33,20 +39,22 @@ defmodule Watchexs.Reload do
     end
   end
 
-  defp reload_or_recompile(path) do
+  defp reload_or_recompile(path, deps) do
     if File.exists?(path) do
-      reload(path)
+      reload(path, deps)
     else
-      recompile()
+      recompile(deps)
     end
   end
 
-  defp reload(path) do
-    Code.compiler_options(ignore_module_conflict: true)
-    Code.load_file(path)
+  defp reload(path, deps) do
+    deps.compl_opt.(ignore_module_conflict: true)
+    deps.load_file.(path)
   rescue
     ex -> {:error, "Error message #{inspect ex}"}
   end
 
-  defp recompile, do: Helpers.recompile()
+  defp recompile(deps) do
+    deps.recompile.()
+  end
 end
