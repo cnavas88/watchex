@@ -23,6 +23,7 @@ defmodule Watchexs.MixProject do
   defp deps do
     [
       {:credo,          "~> 0.9",   only: [:dev, :test]},
+      {:dialyxir,       "~> 1.0.0-rc.7", only: [:dev], runtime: false},
       {:file_system,    "~> 0.2"},
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false}
     ]

@@ -11,7 +11,8 @@ defmodule Watchexs.Reload do
     recompile:    &Helpers.recompile/0,
     compl_opt:    &Code.compiler_options/1,
     load_file:    &Code.load_file/1,
-    file_exists:  &File.exists?/1
+    file_exists:  &File.exists?/1,
+    test_start:   &ExUnit.start/0
   }
 
   @test_extension ".exs"
@@ -31,7 +32,7 @@ defmodule Watchexs.Reload do
   end
 
   defp control_recompile(path, deps) do
-    if Path.extname(path) == @test_extension, do: ExUnit.start()
+    if Path.extname(path) == @test_extension, do: deps.test_start.()
 
     case reload_or_recompile(path, deps) do
       {:error, msg} ->
