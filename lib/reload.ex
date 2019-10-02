@@ -14,6 +14,8 @@ defmodule Watchexs.Reload do
     file_exists:  &File.exists?/1
   }
 
+  @test_extension ".exs"
+
   def add_new_path(list_path, new_path) do
     if new_path in list_path do
       list_path
@@ -24,11 +26,13 @@ defmodule Watchexs.Reload do
 
   def tour_list_paths(path_list, deps \\ @deps) do
     path_list
-    |> Enum.map(&control_recompile(&1, deps, Path.extname(&1)))
+    |> Enum.map(&control_recompile(&1, deps))
     |> Enum.filter(&(&1 != :ok))
   end
 
-  defp control_recompile(path, deps, ".ex") do
+  defp control_recompile(path, deps) do
+    if Path.extname(path) == @test_extension, do: ExUnit.start()
+
     case reload_or_recompile(path, deps) do
       {:error, msg} ->
         Logger.error "#{inspect msg}"
@@ -38,13 +42,6 @@ defmodule Watchexs.Reload do
         Logger.info "Reload or recompile path: #{inspect path}"
         :ok
     end
-  end
-  defp control_recompile(_path, _deps, ".exs") do
-    Logger.info "IS A TEST FILE"
-    # ExUnit.Server.modules_loaded()
-    # deps.compl_opt.(ignore_module_conflict: true)
-    # deps.load_file.(path)
-    :ok
   end
 
   defp reload_or_recompile(path, deps) do

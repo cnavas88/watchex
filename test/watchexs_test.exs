@@ -16,7 +16,6 @@ defmodule Watchexs.ReloadTest do
     test "existing path to list" do
       list = ["/test", "/path", "/reload"]
       path = "/reload"
-      
       result = Reload.add_new_path(list, path)
       expected_result = ["/test", "/path", "/reload"]
       assert result == expected_result
