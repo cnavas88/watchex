@@ -12,6 +12,13 @@ defmodule Watchexs.MixProject do
       elixirc_options: [warnings_as_errors: true],
       description: description(),
       package: package(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test, 
+        "coveralls.detail": :test, 
+        "coveralls.post": :test, 
+        "coveralls.html": :test
+      ],
 
       # Docs
       source_url: "https://github.com/cnavas88/watchexs",
@@ -57,6 +64,7 @@ defmodule Watchexs.MixProject do
     [
       {:credo, "~> 0.9", only: [:dev, :test]},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:excoveralls, "~> 0.10", only: :test},
       {:file_system, "~> 0.2"},
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false}
     ]
