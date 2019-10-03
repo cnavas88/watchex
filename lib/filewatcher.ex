@@ -14,13 +14,16 @@ defmodule Watchexs.FileWatcher do
 
   # Public API
 
+  @spec start_link() :: Supervisor.on_start()
+
   def start_link, do: GenServer.start_link(__MODULE__, [])
 
   # Callbacks
 
+  @impl GenServer
+
   def init(_) do
-    {:ok, watcher_pid} =
-      FileSystem.start_link(dirs: watched_dirs())
+    {:ok, watcher_pid} = FileSystem.start_link(dirs: watched_dirs())
 
     FileSystem.subscribe(watcher_pid)
 
@@ -28,18 +31,20 @@ defmodule Watchexs.FileWatcher do
       watcher_pid: watcher_pid,
       path_with_errors: [],
       deps: %{
-        add_new_path:     &Reload.add_new_path/2,
-        tour_list_paths:  &Reload.tour_list_paths/1
+        add_new_path: &Reload.add_new_path/2,
+        tour_list_paths: &Reload.tour_list_paths/1
       }
     }
 
     {:ok, state}
   end
 
-  def handle_info({:file_event, watcher_pid, {path, _events}},
-      %{watcher_pid: watcher_pid,
-        path_with_errors: error_paths,
-        deps: deps} = state) do
+  @impl GenServer
+
+  def handle_info(
+        {:file_event, watcher_pid, {path, _events}},
+        %{watcher_pid: watcher_pid, path_with_errors: error_paths, deps: deps} = state
+      ) do
     list_errors =
       error_paths
       |> deps.add_new_path.(path)
@@ -48,18 +53,26 @@ defmodule Watchexs.FileWatcher do
     {:noreply, %{state | path_with_errors: list_errors}}
   end
 
-  def handle_info({:file_event, watcher_pid, :stop},
-      %{watcher_pid: watcher_pid} = state) do
-    Logger.info "File watcher stopped."
+  @impl GenServer
+
+  def handle_info(
+        {:file_event, watcher_pid, :stop},
+        %{watcher_pid: watcher_pid} = state
+      ) do
+    Logger.info("File watcher stopped.")
     {:noreply, state}
   end
 
+  @impl GenServer
+
   def handle_info(data, state) do
-    Logger.info "#{inspect data}"
+    Logger.info("#{inspect(data)}")
     {:noreply, state}
   end
 
   # Auxiliary functions
+
+  @spec watched_dirs() :: list()
 
   defp watched_dirs do
     Project.deps_paths()

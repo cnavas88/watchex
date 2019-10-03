@@ -11,11 +11,14 @@ defmodule Watchexs do
     Supervisor.start_link(get_childrens(enabled), opts)
   end
 
+  @spec get_childrens(boolean()) :: list()
+
   defp get_childrens(true) do
     [
       worker(Watchexs.FileWatcher, []),
       worker(Watchexs.GenserverTest, [])
     ]
   end
+
   defp get_childrens(false), do: []
 end

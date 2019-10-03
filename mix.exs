@@ -7,14 +7,47 @@ defmodule Watchexs.MixProject do
       version: "0.1.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases(),
+      elixirc_options: [warnings_as_errors: true],
+      description: description(),
+      package: package(),
+
+      # Docs
+      source_url: "https://github.com/cnavas88/watchex",
+      homepage_url: "https://github.com/cnavas88/watchex"
+    ]
+  end
+
+  defp description do
+    "Watchex is a real time recompiler and reload the changes."
+  end
+
+  defp package do
+    [
+      maintainers: ["Carlos Navas"],
+      licenses: [],
+      links: %{
+        "Github" => "https://github.com/cnavas88/watchex"
+      }
+    ]
+  end
+
+  defp aliases do
+    [
+      quality: ["format", "credo --strict", "dialyzer"],
+      "quality.ci": [
+        "format --check-formatted",
+        "credo --strict",
+        "dialyzer --halt-exit-status"
+      ]
     ]
   end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :ex_unit, :iex, :mix],
       mod: {Watchexs, []}
     ]
   end
@@ -22,8 +55,9 @@ defmodule Watchexs.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:credo,          "~> 0.9",   only: [:dev, :test]},
-      {:file_system,    "~> 0.2"},
+      {:credo, "~> 0.9", only: [:dev, :test]},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:file_system, "~> 0.2"},
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false}
     ]
   end
