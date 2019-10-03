@@ -14,13 +14,13 @@ defmodule Watchexs.MixProject do
       package: package(),
 
       # Docs
-      source_url: "https://github.com/cnavas88/watchex",
-      homepage_url: "https://github.com/cnavas88/watchex"
+      source_url: "https://github.com/cnavas88/watchexs",
+      homepage_url: "https://github.com/cnavas88/watchexs"
     ]
   end
 
   defp description do
-    "Watchex is a real time recompiler and reload the changes."
+    "Watchexs is a real time recompiler and reload the changes."
   end
 
   defp package do
@@ -28,7 +28,7 @@ defmodule Watchexs.MixProject do
       maintainers: ["Carlos Navas"],
       licenses: [],
       links: %{
-        "Github" => "https://github.com/cnavas88/watchex"
+        "Github" => "https://github.com/cnavas88/watchexs"
       }
     ]
   end
