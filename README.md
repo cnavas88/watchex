@@ -41,3 +41,5 @@ config :watchexs, enabled: true
 
  if you execute iex -S mix, with the enabled watchex config variable true
  the watchex begins to recompile and reload.
+
+## Coverage - 84.8
