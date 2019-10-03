@@ -8,12 +8,28 @@ defmodule Watchexs.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      # dialyzer: [
-      #   plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
-      #   ignore_warnings: ".dialyzer_ignore.exs"
-      # ],
       aliases: aliases(),
-      elixirc_options: [warnings_as_errors: true]
+      elixirc_options: [warnings_as_errors: true],
+      description: description(),
+      package: package(),
+
+      # Docs
+      source_url: "https://github.com/cnavas88/watchex",
+      homepage_url: "https://github.com/cnavas88/watchex"
+    ]
+  end
+
+  defp description do
+    "Watchex is a real time recompiler and reload the changes."
+  end
+
+  defp package do
+    [
+      maintainers: ["Carlos Navas"],
+      licenses: [],
+      links: %{
+        "Github" => "https://github.com/cnavas88/watchex"
+      }
     ]
   end
 
