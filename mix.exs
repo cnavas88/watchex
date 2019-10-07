@@ -14,9 +14,9 @@ defmodule Watchexs.MixProject do
       package: package(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
-        coveralls: :test, 
-        "coveralls.detail": :test, 
-        "coveralls.post": :test, 
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
         "coveralls.html": :test
       ],
 
@@ -42,7 +42,7 @@ defmodule Watchexs.MixProject do
 
   defp aliases do
     [
-      quality: ["format", "credo --strict", "dialyzer"],
+      quality: ["format", "credo --strict", "dialyzer", "inch"],
       "quality.ci": [
         "format --check-formatted",
         "credo --strict",
@@ -65,6 +65,7 @@ defmodule Watchexs.MixProject do
       {:credo, "~> 0.9", only: [:dev, :test]},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
+      {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test]},
       {:file_system, "~> 0.2"},
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false}
     ]

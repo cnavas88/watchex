@@ -25,7 +25,7 @@ defmodule Watchexs.ReloadTest do
   describe "tour_list_paths/2" do
     test "reload file ok" do
       path_list = ["reload.ex"]
-            
+
       deps = %{
         compl_opt: fn _ -> :ok end,
         load_file: fn _ -> [] end,
@@ -37,10 +37,10 @@ defmodule Watchexs.ReloadTest do
 
       assert result == expected_result
     end
-    
+
     test "recompile file ok" do
       path_list = ["reload.ex"]
-            
+
       deps = %{
         recompile: fn -> :ok end,
         file_exists: fn _ -> false end
@@ -54,10 +54,10 @@ defmodule Watchexs.ReloadTest do
 
     test "reload file with raise error" do
       path_list = ["reload.ex"]
-            
+
       deps = %{
         compl_opt: fn _ -> :ok end,
-        load_file: fn _ -> 
+        load_file: fn _ ->
           raise "keep calm and raise error."
         end,
         file_exists: fn _ -> true end

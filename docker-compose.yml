@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  watchexs:
+    build:
+      context: .
+      dockerfile: watchexs.Dockerfile
+    image: watchexs
+    command: iex -S mix
+    volumes:
+      - .:/watchexs
