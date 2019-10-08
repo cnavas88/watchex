@@ -1,8 +1,14 @@
 defmodule Watchexs do
-  @moduledoc false
-
+  @moduledoc """
+  Application module for start the watchexs extension. This module contains
+  the switch for enabled or disabled the watchexs functions. And supervisor
+  the genserver filewatcher with a one for one strategy.
+  According the enabled config variable, the childs are [] or [FileWatcher]
+  """
   use Application
   import Supervisor.Spec, warn: true
+
+  @spec start(any, list()) :: {:error, any} | {:ok, pid()} | {:ok, pid(), any}
 
   def start(_type, _args) do
     enabled = Application.get_env(:watchexs, :enabled)
